@@ -1,3 +1,4 @@
+import argparse
 import time
 
 import RPi.GPIO as GPIO
@@ -7,6 +8,11 @@ from flask import Flask, request, abort
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
+parser = argparse.ArgumentParser(description='service')
+parser.add_argument('--port', dest='port', type=int, help='port')
+parser.add_argument('--host', dest='host', type=str, help='Host IP address')
+parser.add_argument('--secret', dest='secret', type=str, help='Secret to run webhook')
+args = parser.parse_args()
 
 app = Flask(__name__)
 limiter = Limiter(
@@ -33,11 +39,8 @@ def webhook():
     if request.method == 'GET':
         return 'GET not supported', 200
 
-    # TODO(ejbrever) Make this a flag.
-    SECRET = b'CH8%c)$72'
-    print(request.data)
-    print(SECRET)
-    if request.data != SECRET:
+    # SECRET = b'CH8%c)$72'
+    if request.data != arg.secret.encode('utf-8'):
         print('invalid secret')
         return 'invalid secret', 200
 
@@ -47,5 +50,4 @@ def webhook():
 
 
 if __name__ == '__main__':
-    # TODO(ejbrever) Make this a flag.
-    app.run(port = 8888, host='192.168.86.22')
+    app.run(port = args.port, host=args.host)
