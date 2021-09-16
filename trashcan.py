@@ -40,8 +40,8 @@ def webhook():
         return 'GET not supported', 200
 
     # SECRET = b'CH8%c)$72'
-    if request.data != arg.secret.encode('utf-8'):
-        print('invalid secret')
+    if request.data != args.secret.encode('utf-8'):
+        print('invalid secret, got %s, want %s' % (request.data, args.secret.encode('utf-8')))
         return 'invalid secret', 200
 
     print('opening the trash can')
