@@ -25,7 +25,7 @@ def openTrashCan():
     GPIO.setup(servo_pin, GPIO.OUT)
     pwm = GPIO.PWM(servo_pin, 50) # 50 Hz (20 ms PWM period).
     pwm.start(2.0) # Initialize the servo to 0 degrees.
-    time.sleep(0.5) # Wait for movement.
+    time.sleep(0.3) # Wait for movement.
     pwm.ChangeDutyCycle(7.0) # Rotate to 90 degrees.
     time.sleep(1.0) # Wait for movement.
     pwm.start(2.0) # Initialize the servo to 0 degrees.
@@ -39,7 +39,6 @@ def webhook():
     if request.method == 'GET':
         return 'GET not supported', 200
 
-    # SECRET = b'CH8%c)$72'
     if request.data != args.secret.encode('utf-8'):
         print('invalid secret, got %s, want %s' % (request.data, args.secret.encode('utf-8')))
         return 'invalid secret', 200
