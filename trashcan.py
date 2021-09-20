@@ -1,4 +1,5 @@
 import argparse
+import threading
 import time
 
 import RPi.GPIO as GPIO
@@ -7,6 +8,7 @@ from flask_login import current_user
 from flask import Flask, request, abort
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from MCP3008 import MCP3008
 
 parser = argparse.ArgumentParser(description='service')
 parser.add_argument('--port', dest='port', type=int, help='port')
@@ -18,6 +20,7 @@ app = Flask(__name__)
 limiter = Limiter(
     app,
     key_func=get_remote_address)
+
 
 def openTrashCan():
     servo_pin = 19
@@ -33,18 +36,41 @@ def openTrashCan():
     pwm.stop() # Stops the PWM.
     GPIO.cleanup()
 
+
+# Watch the distance IR sensor for movement.
+class WatchForSwipe(object):
+  """Thread to watch for a physical swipe to open the trashcan."""
+
+  def __init__(self):
+    thread = threading.Thread(target=self.run, args=())
+    thread.daemon = True
+    thread.start()
+
+  def run(self):
+    adc = MCP3008()
+    while True:
+      value = adc.read(channel=0) / 1023.0 * 3.3
+      print("Applied voltage: %.2f" % value)
+      if value > 1:
+        print('opening the trash can from swipe')
+        openTrashCan()
+      time.sleep(0.1)
+
+
+WatchForSwipe()
+
+
 @app.route('/webhook', methods=['POST', 'GET'])
 @limiter.limit('3/minute')
 def webhook():
     if request.method == 'GET':
         return 'GET not supported', 200
 
-    # SECRET = b'CH8%c)$72'
     if request.data != args.secret.encode('utf-8'):
         print('invalid secret, got %s, want %s' % (request.data, args.secret.encode('utf-8')))
         return 'invalid secret', 200
 
-    print('opening the trash can')
+    print('opening the trash can from webhook')
     openTrashCan()
     return 'opened trash', 200
 
