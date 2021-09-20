@@ -50,8 +50,7 @@ class WatchForSwipe(object):
     adc = MCP3008()
     while True:
       value = adc.read(channel=0) / 1023.0 * 3.3
-      print("Applied voltage: %.2f" % value)
-      if value > 1:
+      if value > 1:  # If the voltage > 1, something got close.
         print('opening the trash can from swipe')
         openTrashCan()
       time.sleep(0.1)
