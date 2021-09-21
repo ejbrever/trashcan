@@ -35,6 +35,7 @@ def openTrashCan():
     pwm.ChangeDutyCycle(0.0)  # Turn off to prevent jitter.
     pwm.stop() # Stops the PWM.
     GPIO.cleanup()
+    time.sleep(2)  # Wait 2 second just so we don't trigger to often.
 
 
 # Watch the distance IR sensor for movement.
@@ -45,15 +46,56 @@ class WatchForSwipe(object):
     thread = threading.Thread(target=self.run, args=())
     thread.daemon = True
     thread.start()
+    self.adc = MCP3008()
+
+  def __voltageFromChannel(self, ch):
+    return self.adc.read(channel=ch) / 1023.0 * 3.3
+
+  def __only_left_triggered(self):
+    value1 = self.__voltageFromChannel(0)
+    value2 = self.__voltageFromChannel(7)
+    if value1 > 1 and value2 < 0.5:  # If the voltage > 1, something got close.
+      return True
+    return False
+
+  def __only_right_triggered(self):
+    value1 = self.__voltageFromChannel(0)
+    value2 = self.__voltageFromChannel(7)
+    if value2 > 1 and value1 < 0.5:
+      return True
+    return False
+
+  def __both_triggered(self):
+    value1 = self.__voltageFromChannel(0)
+    value2 = self.__voltageFromChannel(7)
+    if value1 > 1 and value2 > 1:
+      return True
+    return False
 
   def run(self):
-    adc = MCP3008()
     while True:
-      value = adc.read(channel=0) / 1023.0 * 3.3
-      if value > 1:  # If the voltage > 1, something got close.
-        print('opening the trash can from swipe')
-        openTrashCan()
-      time.sleep(0.1)
+      if self.__only_left_triggered():
+        for _ in range(10):
+          time.sleep(0.05)
+          if self.__only_right_triggered():
+            print('opening the trash can from swipe')
+            openTrashCan()
+            break
+          if self.__both_triggered():
+            print('both sensors activated, so do nothing')
+            break
+
+      elif self.__only_right_triggered():
+        for _ in range(10):
+          time.sleep(0.05)
+          if self.__only_left_triggered():
+            print('opening the trash can from swipe')
+            openTrashCan()
+            break
+          if self.__both_triggered():
+            print('both sensors activated, so do nothing')
+            break
+      time.sleep(0.05)
 
 
 WatchForSwipe()
