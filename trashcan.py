@@ -53,21 +53,21 @@ class WatchForSwipe(object):
 
   def __only_left_triggered(self):
     value1 = self.__voltageFromChannel(0)
-    value2 = self.__voltageFromChannel(7)
+    value2 = self.__voltageFromChannel(1)
     if value1 > 1 and value2 < 0.5:  # If the voltage > 1, something got close.
       return True
     return False
 
   def __only_right_triggered(self):
     value1 = self.__voltageFromChannel(0)
-    value2 = self.__voltageFromChannel(7)
+    value2 = self.__voltageFromChannel(1)
     if value2 > 1 and value1 < 0.5:
       return True
     return False
 
   def __both_triggered(self):
     value1 = self.__voltageFromChannel(0)
-    value2 = self.__voltageFromChannel(7)
+    value2 = self.__voltageFromChannel(1)
     if value1 > 1 and value2 > 1:
       return True
     return False
