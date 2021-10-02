@@ -29,9 +29,10 @@ def openTrashCan():
     pwm = GPIO.PWM(servo_pin, 50) # 50 Hz (20 ms PWM period).
     pwm.start(2.0) # Initialize the servo to 0 degrees.
     time.sleep(0.3) # Wait for movement.
-    pwm.ChangeDutyCycle(7.0) # Rotate to 90 degrees.
+    pwm.ChangeDutyCycle(12.0)  # Rotate to 180 degrees.
     time.sleep(1.0) # Wait for movement.
-    pwm.start(2.0) # Initialize the servo to 0 degrees.
+    pwm.ChangeDutyCycle(2.0)  # Go back to 0 degrees.
+    time.sleep(1.0) # Wait for movement.
     pwm.ChangeDutyCycle(0.0)  # Turn off to prevent jitter.
     pwm.stop() # Stops the PWM.
     GPIO.cleanup()
@@ -73,6 +74,7 @@ class WatchForSwipe(object):
     return False
 
   def run(self):
+    time.sleep(3.0)  # Give self.adc a few seconds to start up.
     while True:
       if self.__only_left_triggered():
         for _ in range(10):
